@@ -14,11 +14,14 @@ jobs:
 
         steps:
             # Fetch the tarball produced in the previous workflow
+            # ref: https://github.com/actions/download-artifact?tab=readme-ov-file#download-artifacts-from-other-workflow-runs-or-repositories
             - name: Download built image
               uses: actions/download-artifact@v4
               with:
                   name: 2025cloud-image
                   path: /tmp
+                  run-id: ${{ github.event.workflow_run.id }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }} # automatically provided by GitHub Actions
 
             # Load it into Docker
             - name: docker load
