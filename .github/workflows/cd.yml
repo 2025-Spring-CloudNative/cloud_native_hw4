@@ -26,7 +26,7 @@ jobs:
             # Load it into Docker
             - name: docker load
               run: |
-                  docker load --input /tmp/my-app.tar
+                  docker load --input /tmp/2025cloud.tar
                   docker image ls -a
 
             # Enable Buildx (new Docker builder)
