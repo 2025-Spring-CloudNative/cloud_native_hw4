@@ -1,0 +1,15 @@
+{
+    "name": "cloud_native_hw4",
+    "version": "1.0.0",
+    "description": "demo",
+    "main": "server.js",
+    "scripts": {
+        "local": "node server.js"
+    },
+    "type": "module",
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "express": "^5.1.0"
+    }
+}
