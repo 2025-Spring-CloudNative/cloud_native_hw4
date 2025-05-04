@@ -1,17 +1,30 @@
-name: Build & Push Docker image
+name: Push Docker image
 
 on:
-    push:
-        branches: ["main"] # build on every push/merge to main
-    workflow_dispatch: # manual trigger in the UI
+    workflow_run:
+        workflows: ["Build Docker image"] # must match the workflow name
+        branches: ["main"]
+        types: [completed] # fire on success/failure
 
 jobs:
-    build-and-push:
+    push:
+        # run only on success of the previous workflow
+        if: ${{ github.event.workflow_run.conclusion == 'success' }}
         runs-on: ubuntu-latest
 
         steps:
-            # Get source
-            - uses: actions/checkout@v4
+            # Fetch the tarball produced in the previous workflow
+            - name: Download built image
+              uses: actions/download-artifact@v4
+              with:
+                  name: 2025cloud-image
+                  path: /tmp
+
+            # Load it into Docker
+            - name: docker load
+              run: |
+                  docker load --input /tmp/my-app.tar
+                  docker image ls -a
 
             # Enable Buildx (new Docker builder)
             - uses: docker/setup-buildx-action@v3
@@ -23,11 +36,20 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            # Build and push
-            - name: Build & Push
-              uses: docker/build-push-action@v5
-              with:
-                  context: .
-                  push: true
-                  # Two tags: :latest and :<git-SHA>
-                  tags: ${{ secrets.DOCKERHUB_USERNAME }}/2025cloud:latest,${{ secrets.DOCKERHUB_USERNAME }}/2025cloud:${{ github.sha }}
+            # Retag and push
+            - name: Push to Docker Hub
+              run: |
+                  IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/2025cloud
+                  SHA=${{ github.event.workflow_run.head_sha }}
+                  docker tag 2025cloud:ci $IMAGE:latest
+                  docker tag 2025cloud:ci $IMAGE:$SHA
+                  docker push --all-tags $IMAGE
+
+            # # Build and push
+            # - name: Build & Push
+            #   uses: docker/build-push-action@v5
+            #   with:
+            #       context: .
+            #       push: true
+            #       # Two tags: :latest and :<git-SHA>
+            #       tags: ${{ secrets.DOCKERHUB_USERNAME }}/2025cloud:latest,${{ secrets.DOCKERHUB_USERNAME }}/2025cloud:${{ github.sha }}
