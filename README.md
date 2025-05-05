@@ -29,7 +29,7 @@ Other useful flags:
 docker run -dp 3000:3000 cl1224/2025cloud
 ```
 
-## How the container image is created and tagged?
+## How is container image created and tagged?
 
 1. Trigger – A push to `main` (or a manual `workflow_dispatch`) starts a single workflow run
 2. `build-image` job
